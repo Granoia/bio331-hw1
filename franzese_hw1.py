@@ -30,6 +30,83 @@ def get_txt_data(filename):
             
     
 
+def get_badger_data(filename):
+    """
+    reads BadgerInfo.txt and returns a dictionary that has badgers as keys, and an ordered list containing sex, infection status, and social group as each value.
+    """
+    dict = {}
+    with open(str(filename), 'r') as input:
+        input.readline()
+        current_line = input.readline()
+        while current_line != "":
+            badger = current_line.split('\t')[0]
+            info = current_line.split('\t')[1:]
+            dict[badger] = info
+    return dict
+    
+    
+def make_simplified_adj_matrix(names, row_ls):
+    """
+    takes the data from get_txt_data() and returns an adjacency matrix with only 1's and 0's
+    """
+    new_matrix = []
+    for row in row_ls:
+        new_row = []
+        for item in row:
+            if item == '0':
+                new_row.append(0)
+            else:
+                new_row.append(1)
+        new_matrix.append(new_row)
+    return new_matrix
+
+def make_adj_list(names, row_ls):
+    """
+    takes the data from get_txt_data() and returns an adjacency list in the form of a dictionary
+    """
+    dict = {}
+    for i in range(len(names)):
+        key = names[i]
+        vals = []
+        for j in range(len(row_ls[i])):
+            if row_ls[i][j] != '0':
+                vals.append(names[j])
+        dict[key] = vals
+    return dict
+    
+def give_matrix_and_adj_list(names, row_ls):
+    """
+    question 2.2 asks for a function that returns an adjacency matrix and an adjacency list so this just runs both of the appropriate functions and returns them bundled into a list
+    it also does: for each node print the number of neighbors and the list of neighbors as question 2.2 asks for
+    """
+    a = make_simplified_adj_matrix(names,row_ls)
+    b = make_adj_list(names,row_ls)
+    for badger in b:
+        print(len(b[badger]))
+        print(b[badger])
+    return [a,b]
+    
+
+def is_adjmat_symmetric(matrix):
+    """
+    checks if the supplied adjacency matrix is symmetric. If symmetric, the function prints True and then returns True. Otherwise, the function prints False and then returns False.
+    """
+    sym = True
+    if len(matrix) != len(matrix[0]):         #assesses whether the matrix is square. this assumes that all the rows have equal length because if they don't then the thing isn't a matrix.
+        sym = False
+        print(sym)
+        return sym
+    
+    for i in range(len(matrix)):               #traverses each value in the matrix and checks whether matrix(i,j) ?= matrix(j,i)
+        for j in range(len(matrix[i])):
+            if matrix[i][j] != matrix[j][i]
+                sym = False
+    print(sym)
+    return sym
+
+
+    
+
     
     
     
@@ -68,17 +145,51 @@ def print_mat(nodes, adj_mat):
     """
     print(str_rep(nodes, adj_mat))
 
-def get_edges(nodes, adj_mat):
+
+
+    
+    
+def get_undirected_edges(nodes, adj_mat):
+    """
+    get edges function for an undirected graph (e.g. an edge (A,B) is the same edge as (B,A). This function will have no duplicate edges in its output.)
+    """
+    edge_set = set()
+    for i in range(len(adj_mat)):
+        current_node = nodes[i]
+        for j in range(len(adj_mat[i])):
+            if adj_mat[i][j] == 1:
+                edge_set.add({current_node, nodes[j]})     #adds the edge as a set to the set of edges, which prevents duplicate edges from being added
+    edge_ls = []
+    for element in edge_set:
+        edge_ls.append(set_to_list(element))
+    return edge_ls
+    
+    
+def set_to_list(set):
+    """
+    helper function for get_undirected_edges() which turns a set into a list containing all the elements that the input set contained.
+    """
+    ls = []
+    for element in set:
+        ls.append(element)
+    return ls
+    
+    
+
+def get_edges(nodes, adj_mat, directed=True):
     """
     returns a list of edges constructed from a list of nodes and an adjacency matrix
     """
     edge_ls = []
-    for row_num in range(len(adj_mat)):
-        current_node = nodes[row_num]
-        for e in range(len(adj_mat[row_num])):
-            if adj_mat[row_num][e] == 1:
-                edge_ls.append([current_node, nodes[e]])
-    return edge_ls
+    if directed == True:
+        for row_num in range(len(adj_mat)):
+            current_node = nodes[row_num]
+            for e in range(len(adj_mat[row_num])):
+                if adj_mat[row_num][e] == 1:
+                    edge_ls.append([current_node, nodes[e]])
+        return edge_ls
+    else:
+        return get_undirected_edges(nodes, adj_mat)
 
 
 def getNodeAttributes(nodes):
